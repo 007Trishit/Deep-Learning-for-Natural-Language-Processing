@@ -1,21 +1,26 @@
 from datasets import load_dataset
 import gensim.downloader as api
 import spacy
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+from models import *
 
-# Load SST-2 dataset
+# Check if CUDA is available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
+
+# Load the SST-2 dataset
 dataset = load_dataset('sst2')
-
-# Split the dataset into train and test
 train_data = dataset['train']
 test_data = dataset['validation']
 
-
-# Load pre-trained word2vec embeddings
-word_vectors = api.load("word2vec-google-news-300")  # 300-dimensional vectors
-
+# Load the pre-trained Word2Vec embeddings using Gensim
+word_vectors = api.load("word2vec-google-news-300")
+    
 # Load spaCy model for English
 nlp = spacy.load("en_core_web_sm")
 
@@ -23,49 +28,37 @@ nlp = spacy.load("en_core_web_sm")
 def tokenize(text):
     return [token.text for token in nlp(text)]
 
-# Example of tokenizing and converting to embeddings
+# Get the Word2Vec embedding for a sentence and move it to GPU
 def get_embedding(sentence, model):
     tokens = tokenize(sentence)
-    vectors = [model[token] for token in tokens if token in model]
-    return vectors
+    vectors = [torch.tensor(model[token], device=device) for token in tokens if token in model]
+    if len(vectors) > 0:
+        return torch.mean(torch.stack(vectors), dim=0)  # Average embedding
+    else:
+        return torch.zeros(300, device=device)  # Return a zero vector if no tokens are found
 
-# Apply embedding to dataset
+# Apply embedding to the dataset
 def preprocess_dataset(data, model):
     embeddings = []
     labels = []
     for example in data:
         emb = get_embedding(example['sentence'], model)
-        if len(emb) > 0:
-            embeddings.append(torch.tensor(emb).mean(dim=0))  # Average embedding
-            labels.append(example['label'])
-    return torch.stack(embeddings), torch.tensor(labels)
+        embeddings.append(emb)
+        labels.append(example['label'])
+    return torch.stack(embeddings), torch.tensor(labels, device=device)
 
 train_embeddings, train_labels = preprocess_dataset(train_data, word_vectors)
 test_embeddings, test_labels = preprocess_dataset(test_data, word_vectors)
-
-class FFNNClassifier(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super(FFNNClassifier, self).__init__()
-        self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_dim, output_dim)
-        self.sigmoid = nn.Sigmoid()
-        
-    def forward(self, x):
-        x = self.fc1(x)
-        x = self.relu(x)
-        x = self.fc2(x)
-        return self.sigmoid(x)
 
 # Model parameters
 input_dim = 300  # Dimension of word embeddings
 hidden_dim = 128
 output_dim = 1  # Binary classification
-device = "cuda:0"
 
+# Instantiate the model and move it to the GPU
 model = FFNNClassifier(input_dim, hidden_dim, output_dim).to(device)
 
-criterion = nn.BCELoss()
+criterion = nn.BCELoss().to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 num_epochs = 10
@@ -80,18 +73,14 @@ for epoch in range(num_epochs):
     optimizer.step()
     
     print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
-    
-    
+
+
 model.eval()
 with torch.no_grad():
     test_outputs = model(test_embeddings).squeeze()
     predicted = (test_outputs > 0.5).float()
     accuracy = (predicted == test_labels).sum() / test_labels.size(0)
     print(f'Test Accuracy: {accuracy.item():.4f}')
-    
-    
-from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
 
 # Apply t-SNE
 tsne = TSNE(n_components=2)
@@ -103,3 +92,4 @@ plt.scatter(train_embeddings_2d[:, 0], train_embeddings_2d[:, 1], c=train_labels
 plt.colorbar()
 plt.title("t-SNE Visualization of Sentence Embeddings")
 plt.show()
+plt.savefig("t-SNE.png")
