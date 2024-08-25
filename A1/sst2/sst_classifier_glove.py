@@ -32,7 +32,7 @@ def load_glove(file_path):
     return embeddings_dict
 
 # For debugging, we'll use a smaller subset of GloVe
-glove = load_glove('glove.6B.300d.txt')  # Make sure this file exists in your directory
+glove = load_glove('../glove.6B.300d.txt')  # Make sure this file exists in your directory
 
 # Create vocabulary
 vocab = {word: idx for idx, word in enumerate(glove.keys())}
