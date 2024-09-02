@@ -5,6 +5,7 @@ from torch.utils.data import Dataset, DataLoader
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
 import numpy as np
+import pandas as pd
 from gensim.models import Word2Vec
 from models import *
 from dataset_builders import *
@@ -15,7 +16,12 @@ print(f"Using device: {device}")
 
 # Load the SST2 dataset
 sst2 = load_dataset("sst2")
-print(f"Dataset loaded. Train size: {len(sst2['train'])+len(sst2['validation'])}, Val and Test size: {0.1*(len(sst2['train'])+len(sst2['validation']))}")
+print(f"Dataset loaded. Train size: {len(sst2['train'])}, Val Size: {len(sst2['validation'])}")
+
+# Load the custom test dataset
+def load_test_data(file_path):
+    df = pd.read_csv(file_path, header=None, names=['label', 'text'])
+    return df['text'].tolist(), df['label'].tolist()
 
 # Prepare sentences for Word2Vec training
 sentences = [tokenize(sentence) for sentence in sst2['train']['sentence']]
@@ -76,13 +82,9 @@ num_epochs = 20
 learning_rate = 0.001
 
 # Prepare data
-train_sentences, eval_sentences, train_labels, eval_labels = train_test_split(
-    sst2['train']['sentence']+sst2['validation']['sentence'], sst2['train']['label']+sst2['validation']['label'], test_size=0.2, random_state=42
-)
+train_sentences, val_sentences, train_labels, val_labels = sst2['train']['sentence'], sst2['validation']['sentence'], sst2['train']['label'], sst2['validation']['label']
 
-test_sentences, val_sentences, test_labels, val_labels = train_test_split(
-    eval_sentences, eval_labels, test_size=0.5, random_state=42
-)
+test_sentences, test_labels = load_test_data('SST2_TestData.csv')
 
 train_dataset = SST2Dataset(train_sentences, train_labels, vocab, max_length)
 val_dataset = SST2Dataset(val_sentences, val_labels, vocab, max_length)
