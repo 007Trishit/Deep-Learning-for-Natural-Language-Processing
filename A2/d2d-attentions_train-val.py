@@ -18,13 +18,14 @@ def read_data(file_path):
             line = line.strip()
             if line:
                 input_seq, target_seq = line.split(',', 1)
-                inputs.append(input_seq.strip())
-                targets.append(target_seq.strip())
+                inputs.append(input_seq.strip()[1:-1])
+                targets.append(target_seq.strip()[1:-1])
     return inputs, targets
 
 
 train_inputs, train_targets = read_data('Assignment2_train.txt')
 val_inputs, val_targets = read_data('Assignment2_validation.txt')
+
 
 def tokenize_input(text):
     tokens = re.findall(r'\d+|[a-zA-Z]+', text.lower())
