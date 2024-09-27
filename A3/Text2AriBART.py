@@ -25,13 +25,15 @@ def preprocess_data(df):
         for idx, num in enumerate(input_numbers):
             description = description.replace(f'number{idx}', num)
             expression = expression.replace(f'number{idx}', num)
-# 'Translate the following word problem into an prefix expression: ' +
-        updated_descriptions.append(description + row['Question'])
+            
+        updated_descriptions.append(description)
         updated_expressions.append(expression)
 
-    updated_df = pd.DataFrame(columns=['Description', 'Equation'])
+    updated_df = pd.DataFrame(columns=['Description', 'Question', 'Equation', 'Output'])
     updated_df['Description'] = updated_descriptions
     updated_df['Equation'] = updated_expressions
+    updated_df['Question'] = df['Question']
+    updated_df['Output'] = df['Output']
     return updated_df
 
 
@@ -55,7 +57,7 @@ class ArithmeticDataset(Dataset):
 
     def __getitem__(self, index):
         row = self.data.iloc[index]
-        input_text = row['Description']
+        input_text = row['Description'] + ' ' + row['Question']
         target_text = row['Equation']
         
         inputs = self.tokenizer(
