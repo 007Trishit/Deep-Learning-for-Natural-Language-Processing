@@ -1,3 +1,7 @@
 __pycache__
 glove*
 models
+*model
+checkpoints
+logs
+*_squad*
