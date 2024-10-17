@@ -3,5 +3,5 @@ glove*
 models
 *model
 checkpoints
-logs
 *_squad*
+*log*

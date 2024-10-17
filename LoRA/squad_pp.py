@@ -90,8 +90,8 @@ def prepare_dataset(dataset, tokenizer):
 # Evaluation function
 
 
-def compute_metrics(eval_pred):
-    metric = load("squad")
+def compute_metrics(eval_pred, version="2.0"):
+    metric = load("squad_v2" if version == "2.0" else "squad")
     logits, labels = eval_pred
     start_logits, end_logits = logits
     start_positions, end_positions = labels
