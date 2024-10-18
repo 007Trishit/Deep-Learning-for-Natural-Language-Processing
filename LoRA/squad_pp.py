@@ -6,8 +6,13 @@ from evaluate import load
 
 # Load SQuAD dataset
 
+global RANK # Rank of the current process
+global targets
 
-def load_squad_dataset(version="2.0"):
+RANK = 8
+targets = "qvk"
+
+def load_squad_dataset(version="1.1"):
     name = "squad_v2" if version == "2.0" else "squad"
     dataset = load_dataset(name)
     return dataset
@@ -89,19 +94,3 @@ def prepare_dataset(dataset, tokenizer):
 
 # Evaluation function
 
-
-def compute_metrics(eval_pred, version="2.0"):
-    metric = load("squad_v2" if version == "2.0" else "squad")
-    logits, labels = eval_pred
-    start_logits, end_logits = logits
-    start_positions, end_positions = labels
-    predictions = [
-        {"start_logits": start_logits[i], "end_logits": end_logits[i]}
-        for i in range(len(start_logits))
-    ]
-    references = [
-        {"start_position": start_positions[i],
-            "end_position": end_positions[i]}
-        for i in range(len(start_positions))
-    ]
-    return metric.compute(predictions=predictions, references=references)

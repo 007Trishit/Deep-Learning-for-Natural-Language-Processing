@@ -12,7 +12,7 @@ tokenized_dataset = prepare_dataset(squad_dataset, tokenizer)
 
 # Configure LoRA
 lora_config = LoraConfig(
-    r=4,
+    r=RANK,
     lora_alpha=32,
     target_modules=["q", "v"],
     lora_dropout=0.05,
@@ -25,7 +25,7 @@ model = get_peft_model(model, lora_config)
 
 # Training arguments
 training_args = TrainingArguments(
-    output_dir="./t5_lora_squad",
+    output_dir=f"./saved_models/t5_lora_squad_{RANK}_{targets}",
     num_train_epochs=3,
     per_device_train_batch_size=8,
     per_device_eval_batch_size=8,
@@ -45,7 +45,7 @@ trainer = Trainer(
     train_dataset=tokenized_dataset["train"],
     eval_dataset=tokenized_dataset["validation"],
     tokenizer=tokenizer,
-    compute_metrics=compute_metrics,
+    # compute_metrics=compute_metrics,
 )
 
 # Train the model

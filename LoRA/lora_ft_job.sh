@@ -18,8 +18,8 @@ cleanup() {
 trap cleanup SIGINT
 
 # Check if we have 4 arguments
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <script1> <script2>"
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <script1> <script2> <script3>"
     exit 1
 fi
 
@@ -30,7 +30,7 @@ conda activate dl-nlp
 # Function to run a single finetuning script
 run_finetuning() {
     echo "Starting: $1"
-    python3 "$1" > "${1%.*}_output.log" 2>&1 &
+    python3 "$1" > "outputs/${1%.*}_output7.log" 2>&1 &
     pid=$!
     pids+=($pid)
     echo "PID: $pid"
@@ -39,7 +39,7 @@ run_finetuning() {
 # Run 4 finetuning scripts in parallel
 run_finetuning "$1"
 run_finetuning "$2"
-# run_finetuning "$3"
+run_finetuning "$3"
 # run_finetuning "$4"
 
 # Wait for all background jobs to finish
