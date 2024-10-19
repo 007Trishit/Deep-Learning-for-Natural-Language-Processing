@@ -12,7 +12,7 @@ global targets
 RANK = 8
 targets = "qvk"
 
-def load_squad_dataset(version="1.1"):
+def load_squad_dataset(version="2.0"):
     name = "squad_v2" if version == "2.0" else "squad"
     dataset = load_dataset(name)
     return dataset

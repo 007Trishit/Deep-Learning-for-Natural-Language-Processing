@@ -25,14 +25,14 @@ model = get_peft_model(model, lora_config)
 
 # Training arguments
 training_args = TrainingArguments(
-    output_dir=f"./saved_models/1.1/deberta_lora_squad_{RANK}_{targets}",
+    output_dir=f"./saved_models_hp/2.0/deberta_lora_squad_{RANK}_{targets}",
     num_train_epochs=3,
-    per_device_train_batch_size=8,
-    per_device_eval_batch_size=8,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=16,
     warmup_steps=500,
     weight_decay=0.01,
     logging_dir="./logs",
-    logging_steps=10,
+    logging_steps=100,
     evaluation_strategy="epoch",
     save_strategy="epoch",
     load_best_model_at_end=True,
