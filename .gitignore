@@ -1,7 +1,6 @@
 __pycache__
 glove*
-models
-*model
-checkpoints
-*_squad*
+outputs/
+results/
+saved_models/
 *log*
