@@ -4,3 +4,4 @@ outputs/
 results/
 saved_models/
 *log*
+full_models/
