@@ -5,3 +5,6 @@ results/
 saved_models/
 *log*
 full_models/
+cache/
+*squad*/
+checkpoints/
